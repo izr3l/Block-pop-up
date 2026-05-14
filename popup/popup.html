@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Popup Blocker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="main-view" class="view">
+    <div class="header">
+      <h2 class="title">Tab Blocker</h2>
+    </div>
+
+    <div class="content">
+      <p class="label">Current Website:</p>
+      <div class="domain-container">
+        <p id="current-domain">...</p>
+      </div>
+
+      <button id="toggle-btn" class="button">Loading...</button>
+    </div>
+
+    <div class="footer">
+      <button class="nav-link" id="manage-btn">Manage Blacklist &rarr;</button>
+    </div>
+  </div>
+
+  <div id="blacklist-view" class="view hidden">
+    <div class="header">
+      <button id="back-btn" class="icon-btn" aria-label="Go back">&larr;</button>
+      <h2 class="title">Blacklisted Sites</h2>
+    </div>
+
+    <div class="content list-container">
+      <ul id="blacklist-items">
+        <!-- Items injected by JS -->
+      </ul>
+      <p id="empty-state" class="hidden">Your blacklist is empty.</p>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
