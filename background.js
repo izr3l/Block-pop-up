@@ -54,12 +54,31 @@ function reserveTarget(targetKey) {
   return true;
 }
 
+let cachedBlacklist = null;
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.blacklist) {
+    cachedBlacklist = Array.isArray(changes.blacklist.newValue)
+      ? changes.blacklist.newValue.map(normalizeDomain).filter(Boolean)
+      : [];
+  }
+});
+
+async function getBlacklist() {
+  if (cachedBlacklist !== null) {
+    return cachedBlacklist;
+  }
+  const data = await chrome.storage.local.get("blacklist");
+  cachedBlacklist = Array.isArray(data.blacklist)
+    ? data.blacklist.map(normalizeDomain).filter(Boolean)
+    : [];
+  return cachedBlacklist;
+}
+
 async function loadBlockSettings() {
   const data = await chrome.storage.local.get(STORAGE_DEFAULTS);
   return {
-    blacklist: Array.isArray(data.blacklist)
-      ? data.blacklist.map(normalizeDomain).filter(Boolean)
-      : [],
+    blacklist: await getBlacklist(),
     blockCounts:
       data.blockCounts && typeof data.blockCounts === "object"
         ? data.blockCounts
@@ -85,6 +104,12 @@ async function blockOpenedTarget({ openerTabId, tabId, windowId, targetLabel }) 
   }
 
   try {
+    const blacklist = await getBlacklist();
+    if (blacklist.length === 0) {
+      handledTargets.delete(targetKey);
+      return;
+    }
+
     const openerTab = await chrome.tabs.get(openerTabId);
     const openerDomain = openerTab?.url ? getHostname(openerTab.url) : "";
     if (!openerDomain) {
@@ -92,7 +117,6 @@ async function blockOpenedTarget({ openerTabId, tabId, windowId, targetLabel }) 
       return;
     }
 
-    const { blacklist } = await loadBlockSettings();
     const matchedRule = findMatchingRule(openerDomain, blacklist);
     if (!matchedRule) {
       handledTargets.delete(targetKey);
